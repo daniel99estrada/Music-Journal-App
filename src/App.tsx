@@ -7,7 +7,8 @@ const POSTJOURNALURL = 'https://y3trlbyznl.execute-api.us-east-1.amazonaws.com/d
 const CLIENT_ID = "745548ae2ecf4f858ddcac85a3ba5f41";
 const SPOTIFY_AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 const REDIRECT_URL_AFTER_LOGIN = "http://localhost:5173/";
-const SCOPES = ["user-read-currently-playing", "user-top-read", "user-library-modify"];
+// const SCOPES = ["user-read-currently-playing", "user-top-read", "user-library-modify"];
+const SCOPES = ["user-read-currently-playing", "user-top-read"];
 
 // "user-library-modify"
 const SCOPES_URL_PARAM = SCOPES.join("%20");
@@ -26,19 +27,6 @@ const App: React.FC = () => {
     Mixed: 0,
   });
 
-  // const getReturnedParamsFromSpotifyAuth = (): SpotifyParameters => {
-  //   const hash = window.location.hash;
-  //   const hashParams = hash.substring(1).split("&");
-  //   const parameters: SpotifyParameters = {};
-  
-  //   for (let param of hashParams) {
-  //     const [key, value] = param.split("=");
-  //     parameters[key] = value;
-  //   }
-  
-  //   return parameters;
-  // };
-
   const [spotifyParams, setSpotifyParams] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -49,11 +37,8 @@ const App: React.FC = () => {
       paramsObject[key] = value;
     });
     setSpotifyParams(paramsObject);
+    console.log(spotifyParams.access_token);
 
-    // If access token is present, fetch top artists
-    if (paramsObject.access_token) {
-      fetchTopArtists();
-    }
   }, []);
 
   const fetchTopArtists = () => {
@@ -71,11 +56,6 @@ const App: React.FC = () => {
       console.error('Error fetching top artists:', error);
     });
   };
-
-  // useEffect(() => {
-  //   const params = getReturnedParamsFromSpotifyAuth();
-  //   setSpotifyParams(params);
-  // }, []);
 
   const handleJournalSubmit = async (entry: string) => {
     console.log('Journal entry submitted:', entry);
