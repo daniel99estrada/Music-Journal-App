@@ -3,6 +3,7 @@ import JournalEntryForm from './JournalEntryForm';
 import Playlist from './Playlist';
 
 const POSTJOURNALURL = 'https://y3trlbyznl.execute-api.us-east-1.amazonaws.com/dev/postjournal';
+const POSTSPOTIFYURL = 'https://y3trlbyznl.execute-api.us-east-1.amazonaws.com/dev/postspotify';
 
 const CLIENT_ID = "745548ae2ecf4f858ddcac85a3ba5f41";
 const SPOTIFY_AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
@@ -13,8 +14,24 @@ const SCOPES = ["user-read-currently-playing", "user-top-read"];
 // "user-library-modify"
 const SCOPES_URL_PARAM = SCOPES.join("%20");
 
+interface responseAPI {
+  name: string;
+}
+
+interface Recommendation {
+  tracks: Track[];
+}
+
+const response: Recommendation = {
+  tracks: [
+    { name: 'hello' },
+    { name: 'yo' }
+  ]
+};
 
 const App: React.FC = () => {
+  const [recommendedTrackNames, setRecommendedTrackNames] = useState<string[]>(["yo", "yo"]);
+  
   const [sentiments, setSentiments] = useState<{
     Positive: number;
     Negative: number;
@@ -41,21 +58,23 @@ const App: React.FC = () => {
 
   }, []);
 
-  const fetchTopArtists = () => {
-    fetch('https://api.spotify.com/v1/me/top/artists', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${spotifyParams.access_token}` // Use access_token key
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Top Artists API Response:', data); // Log the API response
-    })
-    .catch(error => {
-      console.error('Error fetching top artists:', error);
-    });
-  };
+  const GetSpotifyData = async () => {
+    const requestBody = JSON.stringify({ text: spotifyParams.access_token })
+    try {
+        const response = await fetch(POSTSPOTIFYURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: requestBody,
+        });
+        const responseData = await response.json();
+        console.log('SPotify API response:', responseData);
+    } catch (error) {
+        console.error('Error connecting to Spotify', error);
+    }
+};
+
 
   const handleJournalSubmit = async (entry: string) => {
     console.log('Journal entry submitted:', entry);
@@ -84,7 +103,7 @@ const App: React.FC = () => {
     }
 
     if (spotifyParams.access_token) {
-      fetchTopArtists();
+      GetSpotifyData();
     }
   };
 
@@ -99,10 +118,8 @@ const App: React.FC = () => {
       <h1 className="text-4xl font-bold mb-4">Journal App</h1>
       {spotifyParams.access_token ? (
         <div>
-          
           <JournalEntryForm onSubmit={handleJournalSubmit} />
-          <Playlist sentiments={sentiments} />
-          <button onClick={fetchTopArtists} className="bg-blue-500 text-white p-2 rounded mt-8">Get Spotify Data</button>
+          <Playlist recommendedTrackNames={recommendedTrackNames} />
         </div>
       ) : (
         <button onClick={handleSpotifyLogin} className="bg-blue-500 text-white p-2 rounded">Login with Spotify</button>

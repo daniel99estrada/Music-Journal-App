@@ -1,27 +1,20 @@
 import React from 'react';
 
 interface PlaylistProps {
-  sentiments: {
-    Positive: number;
-    Negative: number;
-    Neutral: number;
-    Mixed: number;
-  };
+  recommendedTrackNames: string[];
 }
 
-const Playlist: React.FC<PlaylistProps> = ({ sentiments }) => {
+const Playlist: React.FC<PlaylistProps> = ({ recommendedTrackNames }) => {
   return (
-    <div>
-      <h2>Sentiments</h2>
-      <ul>
-        {Object.entries(sentiments).map(([sentiment, percentage]) => (
-          <li key={sentiment}>
-            {sentiment}: {percentage}
-          </li>
+    <div className="mt-4">
+      <h2 className="text-xl font-semibold mb-2">Recommended Tracks:</h2>
+      <ul className="list-disc pl-6">
+        {recommendedTrackNames.map((trackName, index) => (
+          <li key={index} className="mb-2">{trackName}</li>
         ))}
       </ul>
     </div>
   );
-};
+}
 
 export default Playlist;
