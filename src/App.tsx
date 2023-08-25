@@ -111,7 +111,7 @@ const App: React.FC = () => {
   return (
     <div className="bg-slate-100 min-h-screen">
       <div className="container mx-auto p-4">
-        <h1 className="text-4xl font-bold mb-4 pl-4">Journal App</h1>
+        <h1 className="text-4xl font-bold mb-4 pl-4">My Journal App</h1>
         {spotifyParams.access_token ? (
           <div>
             <JournalEntryForm onSubmit={handleJournalSubmit} />
