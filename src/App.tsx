@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JournalEntryForm from './JournalEntryForm';
 import Playlist from './Playlist';
+import LoadingSpinner from './LoadingSpinner';
 
 const POSTJOURNALURL = 'https://y3trlbyznl.execute-api.us-east-1.amazonaws.com/dev/postjournal';
 const POSTSPOTIFYURL = 'https://y3trlbyznl.execute-api.us-east-1.amazonaws.com/dev/postspotify';
@@ -24,6 +25,7 @@ interface TrackInfo {
 const App: React.FC = () => {
   const [tracks, setTracks] = useState<TrackInfo[]>();
   const [spotifyParams, setSpotifyParams] = useState<{ [key: string]: string }>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Parse the URL to extract all parameters
@@ -98,7 +100,14 @@ const App: React.FC = () => {
     }
 
     if (spotifyParams.access_token) {
-      GetSpotifyData();
+      setIsLoading(true); // Set loading state to true before fetching
+      GetSpotifyData()
+        .then(() => {
+          setIsLoading(false); // Set loading state to false after fetching
+        })
+        .catch(() => {
+          setIsLoading(false); // Handle errors and set loading state to false
+        });
     }
   };
 
@@ -107,24 +116,52 @@ const App: React.FC = () => {
     window.location.href = authUrl;
   };
 
+  const createSpotifyPlaylist = async (token: string) => {
+    // Get the current date in the desired format: day/month.year
+    const currentDate = new Date();
+    const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`;
 
+    // Prepare the request body
+    const requestBody = JSON.stringify({
+      name: formattedDate,
+      description: 'New playlist description',
+      public: false,
+    });
+
+    try {
+      const response = await fetch('https://api.spotify.com/v1/users/smedjan/playlists', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: requestBody,
+      });
+
+      const responseData = await response.json();
+      console.log('Playlist created:', responseData);
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+    }
+  };
+  
   return (
-    <div className="bg-slate-100 min-h-screen">
+    <div className="bg-tertiary min-h-screen">
       <div className="container mx-auto p-4">
-        <h1 className="text-4xl font-bold mb-4 pl-4">My Journal App</h1>
+        <h1 className="text-4xl font-main mb-4 pl-4">My Journal App</h1>
         {spotifyParams.access_token ? (
           <div>
             <JournalEntryForm onSubmit={handleJournalSubmit} />
-            <Playlist playlistTracks={tracks} />
+            {isLoading ? <div className="loader"></div> : <Playlist playlistTracks={tracks} />}
           </div>
         ) : (
-          <button onClick={handleSpotifyLogin} className="bg-blue-500 text-white p-2 rounded">
+          <button onClick={handleSpotifyLogin} className="bg-primary text-white font-main p-2 rounded">
             Login with Spotify
           </button>
         )}
       </div>
     </div>
   );
-  
-}
+};
+
 export default App;

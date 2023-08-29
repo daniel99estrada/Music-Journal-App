@@ -13,22 +13,24 @@ interface PlaylistProps {
 
 const Playlist: React.FC<PlaylistProps> = ({ playlistTracks }) => {
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Playlist</h1>
-      <ul className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="px-4 py-8">
+      <h1 className="text-2xl font-main mb-4">Playlist</h1>
+      <ul className="space-y-4">
         {playlistTracks?.map((track, index) => (
-          <li key={index} className="bg-white shadow rounded p-4">
-            <h2 className="text-xl font-semibold mb-2">{track.name}</h2>
-            <p className="text-gray-600 mb-2">{track.artist}</p>
-            <a
-              href={track.spotifyURL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline mb-2"
-            >
-              Spotify Link
-            </a>
-            <img src={track.imageURL} alt={track.name} className="w-full h-auto" />
+          <li key={index} className="flex items-center space-x-4 bg-secondary rounded- border-2 border-black p-4">
+            <img src={track.imageURL} alt={track.name} className="w-16 h-auto" />
+            <div>
+              <h2 className="text-xl font-main">{track.name}</h2>
+              <p className="text-gray-600 font-main">{track.artist}</p>
+              <a
+                href={track.spotifyURL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline block font-main"
+              >
+                Spotify Link
+              </a>
+            </div>
           </li>
         ))}
       </ul>
