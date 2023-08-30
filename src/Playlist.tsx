@@ -5,6 +5,7 @@ interface TrackInfo {
   artist: string;
   spotifyURL: string;
   imageURL: string;
+  spotifyURI: string;
 }
 
 interface PlaylistProps {

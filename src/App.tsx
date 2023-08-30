@@ -1,28 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import JournalEntryForm from './JournalEntryForm';
 import Playlist from './Playlist';
-import LoadingSpinner from './LoadingSpinner';
+import useSpotifyAuth from './useSpotifyAuth';
+import { createSpotifyPlaylist } from './assets/createPlaylist';
 
 const POSTJOURNALURL = 'https://y3trlbyznl.execute-api.us-east-1.amazonaws.com/dev/postjournal';
 const POSTSPOTIFYURL = 'https://y3trlbyznl.execute-api.us-east-1.amazonaws.com/dev/postspotify';
-
-const CLIENT_ID = "745548ae2ecf4f858ddcac85a3ba5f41";
-const SPOTIFY_AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
-const REDIRECT_URL_AFTER_LOGIN = "http://localhost:5173/";
-const SCOPES = ["user-read-currently-playing", "user-top-read", "user-library-modify"];
-// const SCOPES = ["user-read-currently-playing", "user-top-read"];
-
-// "user-library-modify"
-const SCOPES_URL_PARAM = SCOPES.join("%20");
 
 interface TrackInfo {
   name: string;
   artist: string;
   spotifyURL: string;
   imageURL: string;
+  spotifyURI: string;
 }
 
 const App: React.FC = () => {
+  const { accessToken, loginWithSpotify } = useSpotifyAuth();
   const [tracks, setTracks] = useState<TrackInfo[]>();
   const [spotifyParams, setSpotifyParams] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +56,7 @@ const App: React.FC = () => {
             artist: track.album.artists[0].name,
             spotifyURL: track.album.external_urls.spotify,
             imageURL: track.album.images[0].url,
+            spotifyURI: track.uri
           };
           newTracks.push(newTrack);
         }
@@ -111,12 +106,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSpotifyLogin = () => {
-    const authUrl = `${SPOTIFY_AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URL_AFTER_LOGIN}&scope=${SCOPES_URL_PARAM}&response_type=token`;
-    window.location.href = authUrl;
-  };
-
   const createSpotifyPlaylist = async (token: string) => {
+
     // Get the current date in the desired format: day/month.year
     const currentDate = new Date();
     const formattedDate = `${currentDate.getDate()}/${currentDate.getMonth() + 1}.${currentDate.getFullYear()}`;
@@ -127,12 +118,12 @@ const App: React.FC = () => {
       description: 'New playlist description',
       public: false,
     });
-
+    
     try {
       const response = await fetch('https://api.spotify.com/v1/users/smedjan/playlists', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${spotifyParams.access_token}`,
           'Content-Type': 'application/json',
         },
         body: requestBody,
@@ -144,24 +135,40 @@ const App: React.FC = () => {
       console.error('Error creating playlist:', error);
     }
   };
+
+  const handleCreatePlaylist = async () => {
+    // const id = await createSpotifyPlaylist(spotifyParams.access_token);
+    // alert(id);
+  }
   
   return (
     <div className="bg-tertiary min-h-screen">
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-main mb-4 pl-4">My Journal App</h1>
+        <button onClick={handleCreatePlaylist}>Add Playlist</button>
         {spotifyParams.access_token ? (
           <div>
             <JournalEntryForm onSubmit={handleJournalSubmit} />
-            {isLoading ? <div className="loader"></div> : <Playlist playlistTracks={tracks} />}
+            {isLoading ? (
+              <div className="loader"></div>
+            ) : (
+              <>
+                
+                <Playlist playlistTracks={tracks} />
+              </>
+            )}
           </div>
         ) : (
-          <button onClick={handleSpotifyLogin} className="bg-primary text-white font-main p-2 rounded">
+          <button
+            onClick={loginWithSpotify}
+            className="bg-primary text-white font-main p-2 rounded"
+          >
             Login with Spotify
           </button>
         )}
       </div>
     </div>
   );
-};
+}  
 
 export default App;
